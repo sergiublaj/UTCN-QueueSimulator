@@ -1,22 +1,19 @@
 package model;
 
-import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Client {
-    private String clientID;
-    private int arrivalTime;
-    private int serviceTime;
-    private int queueNumber;
-    private int waitingTime;
+    private final int clientID;
+    private final int arrivalTime;
+    private final AtomicInteger serviceTime;
 
-    public Client(int arrivalTime, int serviceTime) {
-        this.clientID = UUID.randomUUID().toString();
+    public Client(int clientID, int arrivalTime, int serviceTime) {
+        this.clientID = clientID;
         this.arrivalTime = arrivalTime;
-        this.serviceTime = serviceTime;
-        this.queueNumber = 0;
+        this.serviceTime = new AtomicInteger(serviceTime);
     }
 
-    public String getClientID() {
+    public int getClientID() {
         return clientID;
     }
 
@@ -25,26 +22,15 @@ public class Client {
     }
 
     public int getServiceTime() {
-        return serviceTime;
+        return serviceTime.get();
     }
 
-    public int getQueueNumber() {
-        return queueNumber;
+    public void decrementServiceTime() {
+        this.serviceTime.decrementAndGet();
     }
 
-    public void setQueueNumber(int queueNumber) {
-        this.queueNumber = queueNumber;
-    }
-
-    public int getWaitingTime() {
-        return waitingTime;
-    }
-
-    public void setWaitingTime(int waitingTime) {
-        this.waitingTime = waitingTime;
-    }
-
-    public boolean isEnqueued() {
-        return this.queueNumber > 0;
+    @Override
+    public String toString() {
+        return String.format("C(%d-%d-%d)", this.clientID, this.arrivalTime, this.serviceTime.get());
     }
 }
