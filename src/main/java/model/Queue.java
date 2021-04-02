@@ -76,10 +76,12 @@ public class Queue implements Runnable {
                   @Override
                   protected void process(List<Object> chunks) {
                      super.process(chunks);
-                     if(chunks.size() == 1) {
-                        appView.removePerson((int)chunks.get(0));
-                     } else {
-                        appView.updatePerson((int)chunks.get(0), (Person)chunks.get(1));
+                     if(appController.isSimulationRunning().get()) {
+                        if (chunks.size() == 1) {
+                           appView.removePerson((int) chunks.get(0));
+                        } else {
+                           appView.updatePerson((int) chunks.get(0), (Person) chunks.get(1));
+                        }
                      }
                   }
                }.execute();

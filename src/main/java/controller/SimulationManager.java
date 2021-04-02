@@ -7,8 +7,10 @@ import validator.DurationFormatter;
 import view.Person;
 import view.View;
 
+import javax.swing.*;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -90,27 +92,36 @@ public class SimulationManager implements Runnable {
          @Override
          public void run() {
             if (currentTime.get() > simulationTime || !appController.isSimulationRunning().get() || (waitingClients.isEmpty() && totalWaitingTime.get() == 0)) {
-               cancel();
-               appController.setSimulationRunning(false);
-               String computedResults = String.format("Average waiting time %.2f | ", averageWaitingTime / clientsNumber);
-               computedResults += String.format("Average service time %.2f | ", averageServiceTime);
-               computedResults += "Peek hour " + DurationFormatter.getTimerFormat(peakHour.get());
-               appView.setSimulationResults(computedResults, false);
-               stopSimulation();
+               runningSimulation.cancel();
+               stopSimulation(averageWaitingTime, averageServiceTime, peakHour.get());
             } else {
-               CopyOnWriteArrayList<Client> toRemove = new CopyOnWriteArrayList<>();
-               for (Client currentClient : waitingClients) {
-                  if (currentClient.getArrivalTime() == currentTime.get()) {
-                     averageWaitingTime += queueScheduler.sendClientToQueue(currentClient);
-                     toRemove.add(currentClient);
+               new SwingWorker<Void, Integer>() {
+                  @Override
+                  protected Void doInBackground() {
+                     CopyOnWriteArrayList<Client> toRemove = new CopyOnWriteArrayList<>();
+                     for (Client currentClient : waitingClients) {
+                        if (currentClient.getArrivalTime() == currentTime.get()) {
+                           averageWaitingTime += queueScheduler.sendClientToQueue(currentClient);
+                           toRemove.add(currentClient);
+                        }
+                     }
+                     waitingClients.removeAll(toRemove);
+                     totalWaitingTime.set(queueScheduler.getTotalWaitingTime().get());
+                     publish(currentTime.get());
+                     getPeak(peakHour, peakClients, currentTime);
+                     currentTime.incrementAndGet();
+                     return null;
                   }
-               }
-               waitingClients.removeAll(toRemove);
-               totalWaitingTime.set(queueScheduler.getTotalWaitingTime().get());
-               appView.setTimer(currentTime.get());
-               writeSimulationStatusToFile(currentTime.get());
-               getPeak(peakHour, peakClients, currentTime);
-               currentTime.incrementAndGet();
+
+                  @Override
+                  protected void process(List<Integer> chunks) {
+                     super.process(chunks);
+                     if(appController.isSimulationRunning().get()) {
+                        appView.setTimer(chunks.get(0));
+                        writeSimulationStatusToFile(chunks.get(0));
+                     }
+                  }
+               }.execute();
             }
          }
       }, 0, 1000);
@@ -158,7 +169,13 @@ public class SimulationManager implements Runnable {
       }
    }
 
-   private void stopSimulation() {
+   private void stopSimulation(double averageWaitingTime, double averageServiceTime, int peakHour) {
+      String computedResults = String.format("Average waiting time %.2f | ", averageWaitingTime / clientsNumber);
+      computedResults += String.format("Average service time %.2f | ", averageServiceTime);
+      computedResults += "Peek hour " + DurationFormatter.getTimerFormat(peakHour);
+      appView.setSimulationResults(computedResults, false);
+      appController.setSimulationRunning(false);
+
       executorService.shutdown();
       appView.setTimer(0);
       appView.showTimer(false);
