@@ -4,6 +4,8 @@ import controller.Controller;
 import view.Person;
 import view.View;
 
+import javax.swing.*;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
@@ -48,19 +50,39 @@ public class Queue implements Runnable {
          @Override
          public void run() {
             if (!appController.isSimulationRunning().get()) {
-               cancel();
+               runningQueue.cancel();
             } else {
-               if (!enqueuedClients.isEmpty()) {
-                  Client atCashier = enqueuedClients.peek();
-                  if (atCashier.getServiceTime() > 1) {
-                     atCashier.decrementServiceTime();
-                     appView.updatePerson(queueNumber, new Person(atCashier));
-                  } else {
-                     enqueuedClients.poll();
-                     appView.removePerson(queueNumber);
+               new SwingWorker<Void, Object>() {
+                  @Override
+                  protected Void doInBackground() {
+                     if (!appController.isSimulationRunning().get()) {
+                        runningQueue.cancel();
+                     } else {
+                        if (!enqueuedClients.isEmpty()) {
+                           Client atCashier = enqueuedClients.peek();
+                           if (atCashier.getServiceTime() > 1) {
+                              atCashier.decrementServiceTime();
+                              publish(queueNumber, new Person(atCashier));
+                           } else {
+                              enqueuedClients.poll();
+                              publish(queueNumber);
+                           }
+                           waitingTime.decrementAndGet();
+                        }
+                     }
+                     return null;
                   }
-                  waitingTime.decrementAndGet();
-               }
+
+                  @Override
+                  protected void process(List<Object> chunks) {
+                     super.process(chunks);
+                     if(chunks.size() == 1) {
+                        appView.removePerson((int)chunks.get(0));
+                     } else {
+                        appView.updatePerson((int)chunks.get(0), (Person)chunks.get(1));
+                     }
+                  }
+               }.execute();
             }
          }
       }, 0, 1000);

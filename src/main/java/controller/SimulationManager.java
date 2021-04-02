@@ -90,7 +90,6 @@ public class SimulationManager implements Runnable {
          @Override
          public void run() {
             if (currentTime.get() > simulationTime || !appController.isSimulationRunning().get() || (waitingClients.isEmpty() && totalWaitingTime.get() == 0)) {
-               System.out.println("dea");
                cancel();
                appController.setSimulationRunning(false);
                String computedResults = String.format("Average waiting time %.2f | ", averageWaitingTime / clientsNumber);
