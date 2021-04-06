@@ -19,13 +19,11 @@ public class Queue implements Runnable {
    private final BlockingQueue<Client> enqueuedClients;
    private final AtomicInteger waitingTime;
    private final int queueNumber;
-   private int maxClients;
 
    public Queue(View appView, Controller appController, int queueNumber) {
       this.appView = appView;
       this.appController = appController;
       this.queueNumber = queueNumber;
-      this.maxClients = 0;
       enqueuedClients = new LinkedBlockingQueue<>();
       waitingTime = new AtomicInteger(0);
    }
@@ -35,10 +33,6 @@ public class Queue implements Runnable {
          enqueuedClients.put(newClient);
       } catch (InterruptedException e) {
          e.printStackTrace();
-      }
-      int currentSize = enqueuedClients.size();
-      if (currentSize > maxClients) {
-         maxClients = currentSize;
       }
       waitingTime.getAndAdd(newClient.getServiceTime());
    }

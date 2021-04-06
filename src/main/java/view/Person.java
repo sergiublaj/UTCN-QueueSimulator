@@ -7,7 +7,7 @@ import java.awt.*;
 
 public class Person extends JPanel {
    private final String personMessage;
-   private static int cashierID = 1;
+   private static int cashierID = 0;
 
    public Person(Client personType) {
       JLabel personImage = new JLabel();
@@ -23,7 +23,7 @@ public class Person extends JPanel {
    }
 
    public static void resetCashierID() {
-      Person.cashierID = 1;
+      Person.cashierID = 0;
    }
 
    @Override

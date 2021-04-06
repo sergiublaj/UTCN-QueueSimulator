@@ -47,9 +47,6 @@ public class View extends JFrame {
    }
 
    private void setUpFrame() {
-      // DOAR PT AL DOILEA MONITOR
-      // this.setLocation(2350, 250);
-
       this.setMinimumSize(new Dimension(APP_WIDTH, APP_HEIGHT));
       this.setResizable(false);
       this.setTitle(APP_TITLE);
@@ -81,7 +78,7 @@ public class View extends JFrame {
    }
 
    private void addAuthorInfo() {
-      JLabel shortInfo = new JLabel("<html>Ver: 1.14_22.11<br>" +
+      JLabel shortInfo = new JLabel("<html>Ver: 1.15_19.26<br>" +
          "@ author Blaj Sergiu<br>" +
          "@ group 30225</html>");
       shortInfo.setFont(new Font("JetBrains Mono", Font.PLAIN, 15));
@@ -180,7 +177,7 @@ public class View extends JFrame {
       this.showTimer(false);
       logTitlePanel.add(simulationTimer);
 
-      simulationPanel.setPreferredSize(new Dimension(500, 2000));
+      simulationPanel.setPreferredSize(new Dimension(5000, 2000));
       simulationPanel.setLayout(new GridLayout(20, 1));
       JScrollPane logScroll = new JScrollPane(simulationPanel);
       mainPanel.add(logScroll);
@@ -205,6 +202,7 @@ public class View extends JFrame {
          queuesPanel.get(queueNb).add(toAdd);
          simulationPanel.add(queuesPanel.get(queueNb));
       }
+      simulationPanel.repaint();
       simulationPanel.revalidate();
    }
 
@@ -238,23 +236,13 @@ public class View extends JFrame {
    }
 
    public void setSimulationResults(String newResults, boolean disappearFast) {
-      this.simulationResult.setText(newResults);
+      simulationResult.setText(newResults);
       if(disappearFast) {
          ScheduledExecutorService clearMessage = Executors.newSingleThreadScheduledExecutor();
          clearMessage.schedule(() -> this.setSimulationResults("", false), 3, TimeUnit.SECONDS);
       }
-   }
-
-   public void addStartSimulationListener(ActionListener crtListener) {
-      this.startSimulation.addActionListener(crtListener);
-   }
-
-   public void addStopSimulationListener(ActionListener crtListener) {
-      this.stopSimulation.addActionListener(crtListener);
-   }
-
-   public void addClearSimulationListener(ActionListener crtListener) {
-      this.clearSimulation.addActionListener(crtListener);
+      simulationPanel.repaint();
+      simulationPanel.revalidate();
    }
 
    public void showTimer(boolean timerIsShowing) {
@@ -280,6 +268,18 @@ public class View extends JFrame {
       this.startSimulation.setEnabled(isEnabled);
       this.stopSimulation.setEnabled(!isEnabled);
       this.clearSimulation.setEnabled(isEnabled);
+   }
+
+   public void addStartSimulationListener(ActionListener crtListener) {
+      this.startSimulation.addActionListener(crtListener);
+   }
+
+   public void addStopSimulationListener(ActionListener crtListener) {
+      this.stopSimulation.addActionListener(crtListener);
+   }
+
+   public void addClearSimulationListener(ActionListener crtListener) {
+      this.clearSimulation.addActionListener(crtListener);
    }
 
    public Integer getQueuesNumber() {

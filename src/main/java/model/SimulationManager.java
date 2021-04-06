@@ -1,7 +1,6 @@
-package controller;
+package model;
 
-import model.Client;
-import model.Queue;
+import controller.Controller;
 import validator.AscendingArrivalTimeSort;
 import validator.DurationFormatter;
 import view.Person;
@@ -33,34 +32,34 @@ public class SimulationManager implements Runnable {
    private CopyOnWriteArrayList<Client> waitingClients;
    private FileWriter finalResults;
 
-   public SimulationManager(int queuesNumber, int clientsNumber, int simulationTime, int minArrivalTime, int maxArrivalTime, int minServiceTime, int maxServiceTime, View appView, Controller appController) {
+   public SimulationManager(View appView, Controller appController) {
       this.appView = appView;
       this.appController = appController;
-      this.queuesNumber = queuesNumber;
-      this.clientsNumber = clientsNumber;
-      this.simulationTime = simulationTime;
-      this.minArrivalTime = minArrivalTime;
-      this.maxArrivalTime = maxArrivalTime;
-      this.minServiceTime = minServiceTime;
-      this.maxServiceTime = maxServiceTime;
+      this.queuesNumber = appView.getQueuesNumber();
+      this.clientsNumber = appView.getClientsNumber();
+      this.simulationTime = appView.getSimulationTime();
+      this.minArrivalTime = appView.getMinArrivalTime();
+      this.maxArrivalTime = appView.getMaxArrivalTime();
+      this.minServiceTime = appView.getMinServiceTime();
+      this.maxServiceTime = appView.getMaxServiceTime();
       this.initializeSimulation();
    }
 
    private void initializeSimulation() {
       this.waitingClients = generateRandomClients();
       CopyOnWriteArrayList<Queue> availableQueues = new CopyOnWriteArrayList<>();
-      try {
-         finalResults = new FileWriter("results.txt");
-         queueScheduler = new Scheduler(appView, availableQueues);
-      } catch (IOException e) {
-         e.printStackTrace();
-      }
       executorService = Executors.newFixedThreadPool(queuesNumber);
       for (int i = 0; i < queuesNumber; i++) {
          Queue newQueue = new Queue(appView, appController, i);
          availableQueues.add(newQueue);
          executorService.execute(newQueue);
          appView.addPerson(i, new Person(null));
+      }
+      queueScheduler = new Scheduler(appView, availableQueues); 
+      try {
+         finalResults = new FileWriter("results.txt");
+      } catch (IOException e) {
+         e.printStackTrace();
       }
    }
 

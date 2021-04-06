@@ -1,7 +1,7 @@
 package controller.listeners;
 
 import controller.Controller;
-import controller.SimulationManager;
+import model.SimulationManager;
 import validator.InvalidInputException;
 import view.Person;
 import view.View;
@@ -28,17 +28,15 @@ public class StartSimulationListener implements ActionListener {
     }
 
     private void initiateSimulation() throws InvalidInputException {
-        int queuesNumber = appView.getQueuesNumber();
-        int clientsNumber = appView.getClientsNumber();
         int simulationTime = appView.getSimulationTime();
         int minArrivalTime = appView.getMinArrivalTime();
         int maxArrivalTime = appView.getMaxArrivalTime();
         int minServiceTime = appView.getMinServiceTime();
         int maxServiceTime = appView.getMaxServiceTime();
 
-        if(minArrivalTime > maxArrivalTime || maxArrivalTime > simulationTime) {
+        if(minArrivalTime > maxArrivalTime || minArrivalTime > simulationTime) {
             throw new InvalidInputException("Invalid arrival times!");
-        } else if (minServiceTime > maxServiceTime || maxServiceTime > simulationTime) {
+        } else if (minServiceTime > maxServiceTime) {
             throw new InvalidInputException("Invalid service times!");
         }
 
@@ -46,7 +44,7 @@ public class StartSimulationListener implements ActionListener {
         appView.setSimulationResults("", true);
         Person.resetCashierID();
         appController.setSimulationRunning(true);
-        SimulationManager simulationManager = new SimulationManager(queuesNumber, clientsNumber, simulationTime, minArrivalTime, maxArrivalTime, minServiceTime, maxServiceTime, appView, appController);
+        SimulationManager simulationManager = new SimulationManager(appView, appController);
         Thread theSimulation = new Thread(simulationManager);
         theSimulation.start();
     }

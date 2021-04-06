@@ -13,6 +13,15 @@ public class Client {
         this.serviceTime = new AtomicInteger(serviceTime);
     }
 
+    public void decrementServiceTime() {
+        this.serviceTime.decrementAndGet();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("C(%d-%d-%d)", this.clientID, this.arrivalTime, this.serviceTime.get());
+    }
+
     public int getClientID() {
         return clientID;
     }
@@ -23,14 +32,5 @@ public class Client {
 
     public int getServiceTime() {
         return serviceTime.get();
-    }
-
-    public void decrementServiceTime() {
-        this.serviceTime.decrementAndGet();
-    }
-
-    @Override
-    public String toString() {
-        return String.format("C(%d-%d-%d)", this.clientID, this.arrivalTime, this.serviceTime.get());
     }
 }

@@ -1,7 +1,5 @@
-package controller;
+package model;
 
-import model.Client;
-import model.Queue;
 import view.Person;
 import view.View;
 
